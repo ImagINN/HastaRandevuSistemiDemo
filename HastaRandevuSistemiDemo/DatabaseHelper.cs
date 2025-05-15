@@ -7,12 +7,12 @@ namespace HastaRandevuSistemiDemo
     {
         private string connectionString = "Server=localhost\\SQLEXPRESS01;Database=RandevuSistemiDb;Trusted_Connection=True;TrustServerCertificate=true;";
 
-        public SqlConnection GetConnection()
+        public SqlConnection GetConnection() //SqlConnection türünde bir sonuç döndürür.
         {
             return new SqlConnection(connectionString);
         }
 
-        public DataTable ExecuteSelectQuery(string query)
+        public DataTable ExecuteSelectQuery(string query) //Fark ettiyseniz bağlantıyı kapatmadık. Yani SqlDataAdapter Disconnected çalışır (bağlantı açık kalmaz).
         {
             using (SqlConnection conn = GetConnection())
             {
@@ -20,6 +20,23 @@ namespace HastaRandevuSistemiDemo
                 DataTable dt = new DataTable();
                 da.Fill(dt);
                 return dt;
+            }
+        }
+
+        public DataTable ExecuteSelectQuery(string query, params SqlParameter[] parameters)
+        {
+            using (SqlConnection conn = GetConnection())
+            {
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    if (parameters != null)
+                        cmd.Parameters.AddRange(parameters);
+
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    return dt;
+                }
             }
         }
 
@@ -35,5 +52,21 @@ namespace HastaRandevuSistemiDemo
                 }
             }
         }
+
+        public object ExecuteScalarQuery(string query, params SqlParameter[] parameters)
+        {
+            using (SqlConnection conn = GetConnection())
+            {
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    if (parameters != null)
+                        cmd.Parameters.AddRange(parameters);
+
+                    conn.Open();
+                    return cmd.ExecuteScalar();
+                }
+            }
+        }
+
     }
 }
